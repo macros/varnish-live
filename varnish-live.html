@@ -1,6 +1,6 @@
 <html> 
 <head> 
-<title>nowjs test</title> 
+<title>Varnish HTTP Requests</title> 
 <script type="text/javascript" src="/smoothie.js"></script>
 <script src="/socket.io/socket.io.js"></script> 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
@@ -9,22 +9,33 @@
 <body> 
 <canvas id="mycanvas" width="800" height="300"></canvas>
 <script>
+  canvas = document.getElementById("mycanvas");
+  canvas.width = $(document).width() - 30;
+  canvas.height = $(document).height() - 30;
   var smoothie = new SmoothieChart({
-    grid: { strokeStyle:'rgb(20, 0, 0)', fillStyle:'rgb(10, 0, 0)',
+    grid: { strokeStyle:'rgb(40, 40, 40)', fillStyle:'rgb(10, 10, 10)',
             lineWidth: 1, millisPerLine: 250, verticalSections: 4, },
-    labels: { fillStyle:'rgb(60, 0, 0)' }
+    labels: { fillStyle:'rgb(255, 255, 255)' }
   });
   smoothie.streamTo(document.getElementById("mycanvas"), 1000);
   // Data
-  var line1 = new TimeSeries();
+  var total = new TimeSeries();
+  var hits = new TimeSeries();
+  var misses = new TimeSeries();
 
-  smoothie.addTimeSeries(line1,
-  { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)',   lineWidth:3 });
+  smoothie.addTimeSeries(total,
+  { strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.2)',   lineWidth:3 });
+  smoothie.addTimeSeries(hits,
+  { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.2)',   lineWidth:3 });
+  smoothie.addTimeSeries(misses,
+  { strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.2)',   lineWidth:3 });
 
-  var socket = new io.Socket('localhost'); 
+  var socket = new io.Socket('control-rs1.ck.urspeedy.net'); 
   socket.connect();
-  socket.on('message', function(msg){
-    line1.append(new Date().getTime(), Number(msg));
+  socket.on('message', function(metrics){
+    total.append(new Date().getTime(), Number(metrics['total']));
+    hits.append(new Date().getTime(), Number(metrics['hits']));
+    misses.append(new Date().getTime(), Number(metrics['misses']));
   }) 
 
 </script>
